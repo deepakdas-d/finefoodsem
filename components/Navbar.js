@@ -367,8 +367,17 @@ export default function Navbar({ onMenuClick }) {
         }
 
         @media (max-width: 640px) {
+          .navbar-left {
+            gap: 8px;
+          }
           .search-bar {
-            display: none;
+            padding: 8px 12px;
+          }
+          .search-icon {
+            margin-right: 8px;
+          }
+          .search-bar input {
+            font-size: 0.85rem;
           }
         }
 
