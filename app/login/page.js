@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { FiMail, FiLock, FiArrowRight, FiShield } from "react-icons/fi";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useAuth } from "@/components/AuthProvider";
-import { useEffect } from "react";
+import { useTheme } from "@/components/ThemeContext";
+import { FiMail, FiLock, FiArrowRight, FiShield, FiSun, FiMoon } from "react-icons/fi";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user, loading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -55,7 +56,12 @@ export default function LoginPage() {
 
   return (
     <div className="login-wrapper">
-      <div className="login-card glass-dark animate-fade-in">
+      <div className="theme-toggle-wrapper">
+        <button className="theme-btn" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}>
+          {theme === "light" ? <FiMoon /> : <FiSun />}
+        </button>
+      </div>
+      <div className={`login-card glass animate-fade-in`}>
         <div className="login-header">
           <div className="login-logo-wrapper">
             <Image src="/logo.png" alt="FineFoods Logo" width={60} height={60} className="logo-img" />
@@ -107,13 +113,43 @@ export default function LoginPage() {
         .login-wrapper {
           min-height: 100vh;
           width: 100vw;
-          background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent),
-                      radial-gradient(circle at bottom left, rgba(244, 63, 94, 0.1), transparent),
+          background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent),
+                      radial-gradient(circle at bottom left, rgba(244, 63, 94, 0.05), transparent),
                       var(--background);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 1.5rem;
+          transition: background 0.3s ease;
+        }
+
+        .theme-toggle-wrapper {
+          position: fixed;
+          top: 2rem;
+          right: 2rem;
+          z-index: 100;
+        }
+
+        .theme-btn {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          color: var(--foreground);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.25rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .theme-btn:hover {
+          transform: translateY(-2px);
+          border-color: var(--primary);
+          color: var(--primary);
         }
 
         .login-card {
@@ -129,16 +165,17 @@ export default function LoginPage() {
         }
 
         .login-logo-wrapper {
-          width: 60px;
-          height: 60px;
+          width: 64px;
+          height: 64px;
           margin: 0 auto 1.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 14px;
+          border-radius: 16px;
           overflow: hidden;
-          background: rgba(255, 255, 255, 0.05);
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+          background: var(--card-bg);
+          border: 2px solid var(--primary);
+          box-shadow: 0 8px 24px rgba(234, 179, 8, 0.15);
         }
 
         .logo-img {
@@ -177,7 +214,7 @@ export default function LoginPage() {
         }
 
         .input-group input {
-          background: rgba(255, 255, 255, 0.05);
+          background: var(--secondary);
           border: 1px solid var(--card-border);
           padding: 0.85rem 1rem;
           border-radius: 12px;
