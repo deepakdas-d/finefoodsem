@@ -1,6 +1,7 @@
 import "./globals.css";
-import ClientWrapper from "@/components/ui/ClientWrapper";
+import { ThemeProvider } from "@/components/ThemeContext";
 import { AuthProvider } from "@/components/AuthProvider";
+import ClientWrapper from "@/components/ui/ClientWrapper";
 
 export const metadata = {
   title: "FineFoods EM | Employee Hours Management",
@@ -12,9 +13,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AuthProvider>
-          <ClientWrapper>
-            {children}
-          </ClientWrapper>
+          <ThemeProvider>
+            <ClientWrapper>
+              {children}
+            </ClientWrapper>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

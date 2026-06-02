@@ -72,6 +72,18 @@ export default function EmployeesPage() {
           justify-content: space-between;
           align-items: center;
           margin-bottom: 2rem;
+          gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+          .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .add-btn {
+            width: 100%;
+            justify-content: center;
+          }
         }
 
         .header-title {

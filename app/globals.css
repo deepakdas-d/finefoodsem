@@ -1,41 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-:root {
-  /* Light Mode (Clean White & Bold Gold) */
-  --background: #fafafa;
-  --foreground: #000000;
+:root[data-theme='light'] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
   --primary: #eab308;
-  /* Gold-Yellow */
   --primary-hover: #ca8a04;
-  --secondary: #f4f4f5;
-  --accent: #111827;
+  --secondary: #f1f5f9;
+  --accent: #1e293b;
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --text-muted: #71717a;
+  --text-muted: #64748b;
   --card-bg: #ffffff;
-  --card-border: #e4e4e7;
+  --card-border: #e2e8f0;
   --sidebar-width: 280px;
-  --navbar-height: 80px;
+  --sidebar-collapsed-width: 88px;
+  --navbar-height: 72px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark Mode (True Black & Neon Yellow) */
-    --background: #000000;
-    --foreground: #f8fafc;
-    --primary: #facc15;
-    /* Bright Yellow */
-    --primary-hover: #eab308;
-    --secondary: #18181b;
-    --accent: #facc15;
-    --success: #22c55e;
-    --warning: #eab308;
-    --error: #f43f5e;
-    --text-muted: #a1a1aa;
-    --card-bg: #09090b;
-    --card-border: #27272a;
-  }
+:root[data-theme='dark'] {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --primary: #facc15;
+  --primary-hover: #eab308;
+  --secondary: #1e293b;
+  --accent: #facc15;
+  --success: #22c55e;
+  --warning: #facc15;
+  --error: #f43f5e;
+  --text-muted: #94a3b8;
+  --card-bg: #0f172a;
+  --card-border: #1e293b;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 88px;
+  --navbar-height: 72px;
 }
 
 * {

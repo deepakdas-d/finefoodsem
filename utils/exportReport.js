@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 
 export function exportToPDF(data, columns, title = "Report") {
@@ -18,7 +18,7 @@ export function exportToPDF(data, columns, title = "Report") {
         columns.map((col) => row[col.key] ?? "")
     );
 
-    doc.autoTable({
+    autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 36,

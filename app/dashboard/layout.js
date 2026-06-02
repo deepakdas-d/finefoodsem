@@ -8,10 +8,16 @@ import { useEffect, useState } from "react";
 export default function DashboardLayout({ children }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    // Listen for custom trigger to toggle sidebar from navbar if needed
+    const handleToggle = () => setIsMobileOpen(prev => !prev);
+    window.addEventListener('toggle-sidebar', handleToggle);
+    return () => window.removeEventListener('toggle-sidebar', handleToggle);
   }, []);
 
   useEffect(() => {
@@ -23,7 +29,7 @@ export default function DashboardLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#111] text-[#ffd700]">
+      <div className="flex items-center justify-center min-h-screen bg-[#020617] text-[#facc15]">
         <div className="animate-pulse">Verifying Authentication...</div>
       </div>
     );
@@ -32,10 +38,15 @@ export default function DashboardLayout({ children }) {
   if (!user) return null;
 
   return (
-    <div className="dashboard-wrapper">
-      <Sidebar />
+    <div className={`dashboard-wrapper ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileOpen ? "mobile-open" : ""}`}>
+      <Sidebar
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        isMobileOpen={isMobileOpen}
+        onCloseMobile={() => setIsMobileOpen(false)}
+      />
       <div className="main-content">
-        <Navbar />
+        <Navbar onMenuClick={() => setIsMobileOpen(true)} />
         <main className="page-content animate-fade-in">
           {children}
         </main>
@@ -45,20 +56,34 @@ export default function DashboardLayout({ children }) {
         .dashboard-wrapper {
           display: flex;
           min-height: 100vh;
+          background: var(--background);
         }
 
         .main-content {
           flex: 1;
           margin-left: var(--sidebar-width);
-          padding: 20px;
-          padding-top: calc(var(--navbar-height) + 40px);
+          padding: 24px;
+          padding-top: calc(var(--navbar-height) + 32px);
           min-height: 100vh;
-          position: relative;
+          transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+        }
+
+        .dashboard-wrapper.collapsed .main-content {
+          margin-left: var(--sidebar-collapsed-width);
         }
 
         .page-content {
-          max-width: 1200px;
+          max-width: 1400px;
           margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+          .main-content {
+            margin-left: 0 !important;
+            padding: 16px;
+            padding-top: calc(var(--navbar-height) + 24px);
+          }
         }
       `}</style>
     </div>

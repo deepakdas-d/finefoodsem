@@ -18,7 +18,10 @@ import {
   FiList,
   FiPlusSquare,
   FiCalendar,
-  FiFileText
+  FiFileText,
+  FiChevronsLeft,
+  FiChevronsRight,
+  FiBell
 } from "react-icons/fi";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -53,23 +56,19 @@ const menuItems = [
     name: "Reports",
     path: "/dashboard/reports",
     icon: <FiPieChart />,
-    submenu: [
-      { name: "Employee Reports", path: "/dashboard/reports/employees", icon: <FiFileText /> },
-      { name: "Attendance Reports", path: "/dashboard/reports/attendance", icon: <FiFileText /> },
-    ]
+
   },
-  {
-    name: "Settings",
-    path: "/dashboard/settings",
-    icon: <FiSettings />
-  },
+  // {
+  //   name: "Settings",
+  //   path: "/dashboard/settings",
+  //   icon: <FiSettings />
+  // },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMobile }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
   const handleLogout = async () => {
@@ -83,7 +82,8 @@ export default function Sidebar() {
 
   // Auto-expand parents based on pathname
   useEffect(() => {
-    const newExpanded = { ...expandedItems };
+    if (isCollapsed) return; // Don't expand if collapsed
+    const newExpanded = {};
     menuItems.forEach(item => {
       if (item.submenu) {
         const isChildActive = item.submenu.some(sub => pathname === sub.path);
@@ -93,113 +93,162 @@ export default function Sidebar() {
       }
     });
     setExpandedItems(newExpanded);
-  }, [pathname]);
+  }, [pathname, isCollapsed]);
 
   const toggleSubmenu = (name) => {
+    if (isCollapsed) return;
     setExpandedItems(prev => ({
       ...prev,
       [name]: !prev[name]
     }));
   };
 
-  const toggleSidebar = () => setIsOpen(!isOpen);
-
   return (
     <>
-      <button className="mobile-toggle" onClick={toggleSidebar}>
-        {isOpen ? <FiX /> : <FiMenu />}
-      </button>
-
-      <aside className={`sidebar ${isOpen ? "open" : ""}`}>
+      <aside className={`sidebar ${isCollapsed ? "collapsed" : ""} ${isMobileOpen ? "mobile-open" : ""}`}>
         <div className="sidebar-header">
           <div className="logo-container">
             <div className="logo-image-wrapper">
               <Image
                 src="/logo.png"
-                alt="FineFoods Logo"
-                width={44}
-                height={44}
+                alt="Logo"
+                width={32}
+                height={32}
                 className="logo-img"
               />
             </div>
-            <div className="logo-text-group">
-              <span className="logo-text">FineFoods</span>
-              <span className="logo-tagline">Management System</span>
-            </div>
+            {!isCollapsed && (
+              <div className="logo-text-group">
+                <span className="logo-text">FineFoods</span>
+                <span className="logo-tagline">Management</span>
+              </div>
+            )}
           </div>
-        </div>
-
-        <nav className="sidebar-nav">
-          <ul className="menu-list">
-            {menuItems.map((item) => {
-              const hasSubmenu = !!item.submenu;
-              const isExpanded = expandedItems[item.name];
-              const isActive = pathname === item.path || (item.path !== "/dashboard" && pathname.startsWith(item.path));
-
-              return (
-                <li key={item.name} className="menu-item-container">
-                  {hasSubmenu ? (
-                    <div
-                      className={`nav-link ${isActive ? "active-parent" : ""}`}
-                      onClick={() => toggleSubmenu(item.name)}
-                    >
-                      <span className="nav-icon">{item.icon}</span>
-                      <span className="nav-label">{item.name}</span>
-                      <span className="submenu-arrow">
-                        {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
-                      </span>
-                    </div>
-                  ) : (
-                    <Link href={item.path} className={`nav-link ${isActive ? "active" : ""}`} onClick={() => setIsOpen(false)}>
-                      <span className="nav-icon">{item.icon}</span>
-                      <span className="nav-label">{item.name}</span>
-                    </Link>
-                  )}
-
-                  {hasSubmenu && isExpanded && (
-                    <ul className="submenu-list">
-                      {item.submenu.map((sub) => {
-                        const isSubActive = pathname === sub.path;
-                        return (
-                          <li key={sub.path}>
-                            <Link
-                              href={sub.path}
-                              className={`sub-link ${isSubActive ? "active" : ""}`}
-                              onClick={() => setIsOpen(false)}
-                            >
-                              <span className="sub-icon">{sub.icon}</span>
-                              <span className="sub-label">{sub.name}</span>
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-profile-mini">
-            <div className="avatar">
-              <FiUser />
-            </div>
-            <div className="user-info">
-              <p className="user-name">{user?.displayName || "Admin User"}</p>
-              <p className="user-role">{user?.email || "Administrator"}</p>
-            </div>
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            <FiLogOut />
-            <span>Logout</span>
+          <button className="collapse-toggle-desktop" onClick={onToggleCollapse} aria-label="Toggle Sidebar">
+            {isCollapsed ? <FiChevronsRight /> : <FiChevronsLeft />}
+          </button>
+          <button className="mobile-close" onClick={onCloseMobile} aria-label="Close Menu">
+            <FiX />
           </button>
         </div>
 
-        <style jsx>{`
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            {!isCollapsed && <p className="section-label">Main Menu</p>}
+            <ul className="menu-list">
+              {menuItems.map((item) => {
+                const hasSubmenu = !!item.submenu;
+                const isExpanded = expandedItems[item.name];
+                const isActive = pathname === item.path || (item.path !== "/dashboard" && pathname.startsWith(item.path));
+
+                return (
+                  <li key={item.name} className="menu-item-outer">
+                    {hasSubmenu ? (
+                      <div
+                        className={`nav-link ${isActive ? "active-parent" : ""} ${isCollapsed ? "centered" : ""}`}
+                        onClick={() => toggleSubmenu(item.name)}
+                        title={isCollapsed ? item.name : ""}
+                      >
+                        <span className="nav-icon">{item.icon}</span>
+                        {!isCollapsed && <span className="nav-label">{item.name}</span>}
+                        {!isCollapsed && (
+                          <span className={`submenu-arrow ${isExpanded ? "rotated" : ""}`}>
+                            <FiChevronRight />
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.path}
+                        className={`nav-link ${isActive ? "active" : ""} ${isCollapsed ? "centered" : ""}`}
+                        onClick={onCloseMobile}
+                        title={isCollapsed ? item.name : ""}
+                      >
+                        <span className="nav-icon">{item.icon}</span>
+                        {!isCollapsed && <span className="nav-label">{item.name}</span>}
+                      </Link>
+                    )}
+
+                    {hasSubmenu && isExpanded && !isCollapsed && (
+                      <ul className="submenu-list">
+                        {item.submenu.map((sub) => {
+                          const isSubActive = pathname === sub.path;
+                          return (
+                            <li key={sub.path}>
+                              <Link
+                                href={sub.path}
+                                className={`sub-link ${isSubActive ? "active" : ""}`}
+                                onClick={onCloseMobile}
+                              >
+                                <span className={`sub-indicator ${isSubActive ? "active" : ""}`} />
+                                <span className="sub-label">{sub.name}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className={`user-card ${isCollapsed ? "collapsed" : ""}`}>
+            <div className="user-profile-info">
+              <div className="avatar-wrapper">
+                <div className="avatar">
+                  {user?.photoURL ? (
+                    <Image src={user.photoURL} alt="User" width={32} height={32} />
+                  ) : (
+                    <FiUser />
+                  )}
+                </div>
+                <span className="status-indicator"></span>
+              </div>
+              {!isCollapsed && (
+                <div className="user-details">
+                  <p className="user-name">{user?.displayName || "Admin User"}</p>
+                  <p className="user-role">Administrator</p>
+                </div>
+              )}
+            </div>
+
+            {!isCollapsed && (
+              <button onClick={handleLogout} className="logout-btn-premium" title="Logout">
+                <FiLogOut />
+              </button>
+            )}
+          </div>
+
+          {isCollapsed && (
+            <button onClick={handleLogout} className="logout-btn-collapsed" title="Logout">
+              <FiLogOut />
+            </button>
+          )}
+        </div>
+      </aside>
+
+      {isMobileOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={onCloseMobile}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.3)",
+            zIndex: 999,
+            backdropFilter: "blur(8px)",
+            animation: "fadeIn 0.4s ease"
+          }}
+        />
+      )}
+
+      <style jsx>{`
           .sidebar {
-            width: var(--sidebar-width);
+            width: 280px;
             height: 100vh;
             position: fixed;
             left: 0;
@@ -209,37 +258,55 @@ export default function Sidebar() {
             z-index: 1000;
             background: var(--card-bg);
             border-right: 1px solid var(--card-border);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.4s cubic-bezier(0.19, 1, 0.22, 1), transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+            overflow-x: hidden;
+          }
+
+          .sidebar.collapsed {
+            width: 88px;
           }
 
           .sidebar-header {
-            padding: 2rem 1.5rem;
-            border-bottom: 1px solid var(--card-border);
-            margin-bottom: 1rem;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+          }
+
+          .sidebar.collapsed .sidebar-header {
+            padding: 0;
+            justify-content: center;
+          }
+
+          .sidebar.collapsed .logo-container {
+            gap: 0;
+            justify-content: center;
           }
 
           .logo-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
           }
 
           .logo-image-wrapper {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            overflow: hidden;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+            background: linear-gradient(135deg, var(--primary) 0%, #f59e0b 100%);
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+            padding: 8px;
           }
 
           .logo-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            filter: brightness(0) invert(1);
           }
 
           .logo-text-group {
@@ -248,94 +315,225 @@ export default function Sidebar() {
           }
 
           .logo-text {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--foreground);
-            line-height: 1;
             letter-spacing: -0.5px;
+            line-height: 1.1;
           }
 
           .logo-tagline {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 2px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+
+          .collapse-toggle-desktop {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            padding: 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            border: 1px solid transparent;
+          }
+
+          .collapse-toggle-desktop:hover {
+            background: var(--secondary);
+            color: var(--primary);
+            border-color: var(--card-border);
+          }
+
+          .sidebar.collapsed .collapse-toggle-desktop {
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(234, 179, 8, 0.4);
+            border: 2px solid var(--card-bg);
+            z-index: 10;
+            padding: 0;
+            opacity: 0;
+          }
+
+          .sidebar:hover .collapse-toggle-desktop {
+            opacity: 1;
+          }
+
+          .mobile-close {
+            display: none;
           }
 
           .sidebar-nav {
             flex: 1;
             overflow-y: auto;
-            padding: 0 1rem;
+            padding: 0.5rem 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--card-border) transparent;
           }
 
           .sidebar-nav::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
+          }
+
+          .sidebar-nav::-webkit-scrollbar-thumb {
+            background-color: var(--card-border);
+            border-radius: 10px;
+          }
+
+          .nav-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+          }
+
+          .section-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0 0.75rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
           }
 
           .menu-list {
-            padding: 0;
-            margin: 0;
-          }
-
-          .menu-item-container {
-            margin-bottom: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
           }
 
           .nav-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
+            gap: 16px;
+            padding: 14px 18px;
             color: var(--text-muted);
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
             cursor: pointer;
             font-weight: 500;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            margin: 0 4px;
+            border: 1px solid transparent;
           }
 
           .nav-link:hover {
-            background: var(--secondary);
             color: var(--foreground);
+            background: var(--secondary);
+            border-color: var(--card-border);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
           }
 
           .nav-link.active, .nav-link.active-parent {
             background: var(--primary);
             color: #000;
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 8px 16px rgba(234, 179, 8, 0.25);
+            border-color: var(--primary);
+          }
+
+          .nav-link.active .nav-icon, .nav-link.active-parent .nav-icon {
+            color: #000;
+          }
+
+          .nav-link.centered {
+            justify-content: center;
+            padding: 16px;
+            margin: 0 -4px;
+            gap: 0;
           }
 
           .nav-icon {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
+            transition: transform 0.3s ease;
+          }
+
+          .nav-link:hover .nav-icon {
+            transform: scale(1.1);
           }
 
           .nav-label {
             flex: 1;
             font-size: 0.95rem;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+          }
+
+          .sidebar.collapsed .nav-label {
+            display: none;
           }
 
           .submenu-arrow {
-            font-size: 0.8rem;
-            opacity: 0.7;
+            font-size: 0.9rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.6;
+          }
+
+          .submenu-arrow.rotated {
+            transform: rotate(90deg);
           }
 
           .submenu-list {
+            margin: 8px 0 12px 24px;
             padding-left: 20px;
-            margin: 4px 0 8px 0;
-            border-left: 1px dashed var(--card-border);
-            margin-left: 26px;
+            border-left: 2px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
           }
 
           .sub-link {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 16px;
+            gap: 14px;
+            padding: 12px 16px;
             color: var(--text-muted);
-            font-size: 0.875rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+            text-decoration: none;
+            position: relative;
+            border: 1px solid transparent;
+            margin-right: 4px;
+          }
+
+          .sub-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--card-border);
+            transition: all 0.3s ease;
+          }
+
+          .sub-indicator.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            transform: scale(1.2);
           }
 
           .sub-link:hover {
@@ -344,38 +542,76 @@ export default function Sidebar() {
           }
 
           .sub-link.active {
-            color: var(--primary);
+            color: var(--foreground);
             font-weight: 600;
-          }
-
-          .sub-icon {
-            font-size: 1rem;
+            background: var(--secondary);
           }
 
           .sidebar-footer {
-            padding: 1.5rem;
+            padding: 1.25rem 1rem;
             border-top: 1px solid var(--card-border);
-            background: rgba(0,0,0,0.02);
+            background: linear-gradient(to top, var(--card-bg) 80%, transparent);
           }
 
-          .user-profile-mini {
+          .user-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--secondary);
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+          }
+
+          .user-card.collapsed {
+            background: transparent;
+            border: none;
+            padding: 0;
+            justify-content: center;
+            display: flex;
+          }
+
+          .user-profile-info {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 1.25rem;
+          }
+
+          .avatar-wrapper {
+            position: relative;
           }
 
           .avatar {
-            width: 38px;
-            height: 38px;
-            background: var(--secondary);
-            border-radius: 10px;
+            width: 40px;
+            height: 40px;
+            background: var(--card-bg);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary);
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             border: 1px solid var(--card-border);
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          }
+
+          .status-indicator {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+          }
+
+          .user-details {
+            overflow: hidden;
+            max-width: 110px;
           }
 
           .user-name {
@@ -383,74 +619,90 @@ export default function Sidebar() {
             font-weight: 700;
             color: var(--foreground);
             margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
 
           .user-role {
             font-size: 0.75rem;
             color: var(--text-muted);
             margin: 0;
+            font-weight: 500;
           }
 
-          .logout-btn {
+          .logout-btn-premium {
+            background: var(--card-bg);
+            color: var(--error);
+            border: 1px solid var(--card-border);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 16px;
-            color: var(--error);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-          }
-
-          .logout-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-          }
-
-          .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 2000;
-            width: 40px;
-            height: 40px;
-            background: var(--primary);
-            color: #000;
-            border-radius: 8px;
-            align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 1.1rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .logout-btn-premium:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+          }
+
+          .logout-btn-collapsed {
+             width: 48px;
+             height: 48px;
+             border-radius: 14px;
+             background: var(--secondary);
+             color: var(--error);
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             font-size: 1.4rem;
+             margin: 8px auto 0;
+             transition: all 0.2s;
+             border: 1px solid var(--card-border);
+          }
+
+          .logout-btn-collapsed:hover {
+             background: var(--error);
+             color: white;
+             border-color: var(--error);
           }
 
           @media (max-width: 1024px) {
             .sidebar {
               transform: translateX(-100%);
+              width: 300px !important;
+              box-shadow: 20px 0 50px rgba(0,0,0,0.2);
             }
-            .sidebar.open {
+            .sidebar.mobile-open {
               transform: translateX(0);
             }
-            .mobile-toggle {
+            .sidebar.collapsed {
+              width: 300px !important;
+            }
+            .collapse-toggle-desktop {
+              display: none;
+            }
+            .mobile-close {
               display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 36px;
+              height: 36px;
+              border-radius: 10px;
+              background: var(--secondary);
+              color: var(--foreground);
+              border: 1px solid var(--card-border);
             }
           }
-        `}</style>
-      </aside>
 
-      {isOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={toggleSidebar}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 999,
-            backdropFilter: "blur(4px)"
-          }}
-        />
-      )}
+        `}</style>
     </>
   );
 }
