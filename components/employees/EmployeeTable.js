@@ -1,20 +1,28 @@
 "use client";
 import { FiEdit2, FiTrash2, FiSearch } from "react-icons/fi";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "@/components/SearchContext";
 
 export default function EmployeeTable({ employees, onDelete }) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const { searchQuery, setSearchQuery } = useSearch();
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Sync local search with global search
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   const filteredEmployees = employees.filter((emp) => {
-    const query = searchTerm.toLowerCase().trim();
+    const query = (localSearch || "").toLowerCase().trim();
     if (!query) return true;
 
     return (
       (emp.name?.toLowerCase() || "").includes(query) ||
       (emp.email?.toLowerCase() || "").includes(query) ||
       (emp.department?.toLowerCase() || "").includes(query) ||
-      (emp.position?.toLowerCase() || "").includes(query)
+      (emp.position?.toLowerCase() || "").includes(query) ||
+      (emp.employeeId?.toLowerCase() || "").includes(query)
     );
   });
 
@@ -30,8 +38,11 @@ export default function EmployeeTable({ employees, onDelete }) {
           <input
             type="text"
             placeholder="Search by name, email, department..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={localSearch}
+            onChange={(e) => {
+              setLocalSearch(e.target.value);
+              setSearchQuery(e.target.value);
+            }}
           />
         </div>
       </div>

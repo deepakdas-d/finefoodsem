@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/components/ThemeContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import ClientWrapper from "@/components/ui/ClientWrapper";
+import { SearchProvider } from "@/components/SearchContext";
 
 export const metadata = {
   title: "FineFoods EM | Employee Hours Management",
@@ -16,9 +17,11 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ThemeProvider>
             <ToastProvider>
-              <ClientWrapper>
-                {children}
-              </ClientWrapper>
+              <SearchProvider>
+                <ClientWrapper>
+                  {children}
+                </ClientWrapper>
+              </SearchProvider>
             </ToastProvider>
           </ThemeProvider>
         </AuthProvider>

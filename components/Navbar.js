@@ -1,18 +1,33 @@
 "use client";
 import { useState, useEffect } from "react";
-import { FiSearch, FiBell, FiSettings, FiX, FiCheckCircle, FiInfo, FiAlertCircle, FiSun, FiMoon, FiMenu } from "react-icons/fi";
+import { FiSearch, FiBell, FiSettings, FiX, FiCheckCircle, FiInfo, FiAlertCircle, FiSun, FiMoon, FiMenu, FiUser } from "react-icons/fi";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeContext";
 import { useFcm } from "@/hooks/useFcm";
+import { useSearch } from "@/components/SearchContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Navbar({ onMenuClick }) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { requestPermission } = useFcm();
+  const { searchQuery, setSearchQuery, searchResults } = useSearch();
+  const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState("default");
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".search-bar")) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -62,8 +77,45 @@ export default function Navbar({ onMenuClick }) {
             type="text"
             placeholder="Search everything..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSearchResults(true);
+            }}
+            onFocus={() => setShowSearchResults(true)}
           />
+
+          {showSearchResults && searchQuery.trim() && (
+            <div className="search-results-dropdown glass animate-fade-in shadow-xl">
+              <div className="search-results-header">
+                <span>Search and Navigation</span>
+                <button onClick={() => setShowSearchResults(false)}><FiX /></button>
+              </div>
+              <div className="results-list">
+                {searchResults.length > 0 ? (
+                  searchResults.map((result, idx) => (
+                    <button
+                      key={idx}
+                      className="result-item"
+                      onClick={() => {
+                        router.push(result.path);
+                        setShowSearchResults(false);
+                      }}
+                    >
+                      <div className={`result-icon ${result.type}`}>
+                        {result.type === 'nav' ? <FiMenu /> : <FiUser />}
+                      </div>
+                      <div className="result-info">
+                        <span className="result-name">{result.name}</span>
+                        {result.subtitle && <span className="result-subtitle">{result.subtitle}</span>}
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="no-results">No results found for "{searchQuery}"</div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -212,6 +264,106 @@ export default function Navbar({ onMenuClick }) {
           max-width: 400px;
           transition: all 0.2s;
           border: 1px solid transparent;
+          position: relative;
+        }
+
+        .search-results-dropdown {
+          position: absolute;
+          top: calc(100% + 12px);
+          left: 0;
+          right: 0;
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          border-radius: 16px;
+          z-index: 1000;
+          overflow: hidden;
+          max-height: 400px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .search-results-header {
+          padding: 12px 16px;
+          border-bottom: 1px solid var(--card-border);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .results-list {
+          overflow-y: auto;
+          padding: 8px;
+        }
+
+        .result-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          transition: all 0.2s;
+          text-align: left;
+          background: transparent;
+        }
+
+        .result-item:hover {
+          background: var(--secondary);
+          transform: translateX(4px);
+        }
+
+        .result-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          flex-shrink: 0;
+        }
+
+        .result-icon.nav {
+          background: rgba(234, 179, 8, 0.1);
+          color: var(--primary);
+        }
+
+        .result-icon.employee {
+          background: rgba(99, 102, 241, 0.1);
+          color: #818cf8;
+        }
+
+        .result-info {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .result-name {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--foreground);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .result-subtitle {
+          font-size: 0.75rem;
+          color: var(--text-muted);
+        }
+
+        .no-results {
+          padding: 24px;
+          text-align: center;
+          color: var(--text-muted);
+          font-size: 0.9rem;
         }
 
         @media (max-width: 640px) {

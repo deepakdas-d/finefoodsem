@@ -1,14 +1,21 @@
 "use client";
 import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiSearch } from "react-icons/fi";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "@/components/SearchContext";
 import { formatDate, formatTime, formatHoursMinutes } from "@/utils/formatDate";
 
 export default function AttendanceTable({ records, onDelete }) {
-  const [searchTerm, setSearchTerm] = useState("");
+  const { searchQuery, setSearchQuery } = useSearch();
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Sync local search with global search
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   const filteredRecords = records.filter((rec) => {
-    const query = searchTerm.toLowerCase().trim();
+    const query = (localSearch || "").toLowerCase().trim();
     if (!query) return true;
     return (
       (rec.employeeName?.toLowerCase() || "").includes(query) ||
@@ -28,8 +35,11 @@ export default function AttendanceTable({ records, onDelete }) {
           <input
             type="text"
             placeholder="Search by employee name or status..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={localSearch}
+            onChange={(e) => {
+              setLocalSearch(e.target.value);
+              setSearchQuery(e.target.value);
+            }}
           />
         </div>
       </div>
