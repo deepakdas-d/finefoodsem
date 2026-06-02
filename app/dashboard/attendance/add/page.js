@@ -5,9 +5,11 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useRouter } from "next/navigation";
 import { FiArrowLeft, FiPlusCircle } from "react-icons/fi";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 export default function AddAttendancePage() {
     const router = useRouter();
+    const { addToast } = useToast();
     const { employees, loading: employeesLoading } = useEmployees();
 
     const handleSubmit = async (data) => {
@@ -15,7 +17,7 @@ export default function AddAttendancePage() {
             await addAttendance(data);
             router.push("/dashboard/attendance");
         } catch (err) {
-            alert("Failed to save: " + err.message);
+            addToast(err.message || "Failed to save attendance", "error");
         }
     };
 

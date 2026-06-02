@@ -35,22 +35,49 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
     }
   }, [formData.checkIn, formData.checkOut]);
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(""); // Clear error on change
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check-out validation
+    if (formData.checkOut && formData.checkIn) {
+      if (formData.checkOut <= formData.checkIn) {
+        setError("Check-out time must be greater than check-in time.");
+        return;
+      }
+
+      const hours = calculateHours(formData.checkIn, formData.checkOut);
+      if (hours < 0) {
+        setError("Working hours cannot be negative.");
+        return;
+      }
+    }
+
     const employee = employees.find(emp => emp.id === formData.employeeId);
-    onSubmit({
-      ...formData,
-      employeeName: employee?.name || "Unknown",
-    });
+    try {
+      await onSubmit({
+        ...formData,
+        employeeName: employee?.name || "Unknown",
+      });
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="form-container glass animate-fade-in">
+      {error && (
+        <div className="error-message animate-fade-in">
+          {error}
+        </div>
+      )}
       <div className="form-grid">
         <div className="input-group full-width">
           <label><FiUser /> Select Employee</label>
@@ -230,6 +257,18 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
           background: var(--primary);
           color: white;
           box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .error-message {
+          background: rgba(239, 68, 68, 0.1);
+          color: var(--error);
+          padding: 1rem;
+          border-radius: 10px;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          margin-bottom: 1.5rem;
+          font-weight: 500;
+          font-size: 0.9rem;
+          text-align: center;
         }
       `}</style>
     </form>

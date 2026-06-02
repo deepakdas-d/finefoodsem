@@ -6,10 +6,12 @@ import { getAttendanceById, updateAttendance } from "@/lib/attendanceService";
 import { useEmployees } from "@/hooks/useEmployees";
 import { FiArrowLeft, FiEdit3 } from "react-icons/fi";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 export default function EditAttendancePage() {
     const { id } = useParams();
     const router = useRouter();
+    const { addToast } = useToast();
     const [record, setRecord] = useState(null);
     const [loading, setLoading] = useState(true);
     const { employees, loading: employeesLoading } = useEmployees();
@@ -37,7 +39,7 @@ export default function EditAttendancePage() {
             await updateAttendance(id, data);
             router.push("/dashboard/attendance");
         } catch (err) {
-            alert("Update failed: " + err.message);
+            addToast(err.message || "Failed to update attendance", "error");
         }
     };
 

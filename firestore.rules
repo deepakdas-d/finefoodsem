@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Employees Collection
+    match /employees/{employeeId} {
+      allow read, write: if isAuthenticated();
+      
+      // Data Integrity
+      allow create, update: if 
+        request.resource.data.name is string &&
+        request.resource.data.email is string &&
+        request.resource.data.department is string;
+    }
+
+    // Attendance Collection
+    match /attendance/{attendanceId} {
+      allow read, write: if isAuthenticated();
+
+      // Attendance Integrity & Duplicate Prevention
+      // Note: Strict duplicate prevention is handled in the app service logic
+      // as Firestore doesn't support easy cross-document uniqueness checks 
+      // without specific document ID schemes.
+      allow create: if 
+        request.resource.data.employeeId is string &&
+        request.resource.data.date is string &&
+        request.resource.data.checkIn is string &&
+        (request.resource.data.checkOut == "" || request.resource.data.checkOut > request.resource.data.checkIn);
+        
+      allow update: if 
+        request.resource.data.updatedAt != null &&
+        request.resource.data.updatedBy != null;
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

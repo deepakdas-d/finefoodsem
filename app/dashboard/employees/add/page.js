@@ -4,42 +4,44 @@ import { addEmployee } from "@/lib/employeeService";
 import { useRouter } from "next/navigation";
 import { FiArrowLeft, FiUserPlus } from "react-icons/fi";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 export default function AddEmployeePage() {
-    const router = useRouter();
+  const router = useRouter();
+  const { addToast } = useToast();
 
-    const handleSubmit = async (data) => {
-        try {
-            await addEmployee(data);
-            router.push("/dashboard/employees");
-        } catch (err) {
-            alert("Failed to add employee: " + err.message);
-        }
-    };
+  const handleSubmit = async (data) => {
+    try {
+      await addEmployee(data);
+      router.push("/dashboard/employees");
+    } catch (err) {
+      addToast(err.message || "Failed to add employee", "error");
+    }
+  };
 
-    return (
-        <div className="page-container">
-            <div className="page-header">
-                <Link href="/dashboard/employees" className="back-link">
-                    <FiArrowLeft /> Back to Directory
-                </Link>
-                <div className="header-title">
-                    <div className="icon-badge">
-                        <FiUserPlus />
-                    </div>
-                    <div>
-                        <h1>Add New Employee</h1>
-                        <p className="subtitle">Fill in the details to create a new profile</p>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="page-container">
+      <div className="page-header">
+        <Link href="/dashboard/employees" className="back-link">
+          <FiArrowLeft /> Back to Directory
+        </Link>
+        <div className="header-title">
+          <div className="icon-badge">
+            <FiUserPlus />
+          </div>
+          <div>
+            <h1>Add New Employee</h1>
+            <p className="subtitle">Fill in the details to create a new profile</p>
+          </div>
+        </div>
+      </div>
 
-            <EmployeeForm
-                onSubmit={handleSubmit}
-                onCancel={() => router.push("/dashboard/employees")}
-            />
+      <EmployeeForm
+        onSubmit={handleSubmit}
+        onCancel={() => router.push("/dashboard/employees")}
+      />
 
-            <style jsx>{`
+      <style jsx>{`
         .page-header {
           margin-bottom: 2.5rem;
         }
@@ -89,6 +91,6 @@ export default function AddEmployeePage() {
           margin: 0;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

@@ -5,10 +5,12 @@ import EmployeeForm from "@/components/employees/EmployeeForm";
 import { getEmployeeById, updateEmployee } from "@/lib/employeeService";
 import { FiArrowLeft, FiEdit3 } from "react-icons/fi";
 import Link from "next/link";
+import { useToast } from "@/components/ui/Toast";
 
 export default function EditEmployeePage() {
     const { id } = useParams();
     const router = useRouter();
+    const { addToast } = useToast();
     const [employee, setEmployee] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export default function EditEmployeePage() {
             await updateEmployee(id, data);
             router.push("/dashboard/employees");
         } catch (err) {
-            alert("Failed to update employee: " + err.message);
+            addToast(err.message || "Failed to update employee", "error");
         }
     };
 

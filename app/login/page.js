@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FiMail, FiLock, FiArrowRight, FiShield } from "react-icons/fi";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { useAuth } from "@/components/AuthProvider";
+import { useEffect } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +14,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { user, loading: authLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [mounted, user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <div className="login-wrapper">
+        <div className="text-primary animate-pulse">Verifying Access...</div>
+      </div>
+    );
+  }
+
+  if (user) return null;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,7 +57,9 @@ export default function LoginPage() {
     <div className="login-wrapper">
       <div className="login-card glass-dark animate-fade-in">
         <div className="login-header">
-          <div className="login-logo">FF</div>
+          <div className="login-logo-wrapper">
+            <Image src="/logo.png" alt="FineFoods Logo" width={60} height={60} className="logo-img" />
+          </div>
           <h1>FineFoods <span className="text-primary">EM</span></h1>
           <p className="subtitle">Employee Hours Management System</p>
         </div>
@@ -101,19 +128,23 @@ export default function LoginPage() {
           margin-bottom: 2.5rem;
         }
 
-        .login-logo {
-          width: 50px;
-          height: 50px;
-          background: linear-gradient(135deg, var(--primary), var(--accent));
-          border-radius: 12px;
+        .login-logo-wrapper {
+          width: 60px;
+          height: 60px;
+          margin: 0 auto 1.5rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
-          font-weight: 800;
-          font-size: 1.5rem;
-          margin: 0 auto 1.5rem;
-          box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+          border-radius: 14px;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.05);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
         }
 
         .login-header h1 {

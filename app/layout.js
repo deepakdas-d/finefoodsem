@@ -1,4 +1,6 @@
 import "./globals.css";
+import ClientWrapper from "@/components/ui/ClientWrapper";
+import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata = {
   title: "FineFoods EM | Employee Hours Management",
@@ -9,7 +11,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        {children}
+        <AuthProvider>
+          <ClientWrapper>
+            {children}
+          </ClientWrapper>
+        </AuthProvider>
       </body>
     </html>
   );

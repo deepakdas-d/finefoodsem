@@ -54,10 +54,17 @@ export default function EmployeeTable({ employees, onDelete }) {
                 <tr key={emp.id} className="table-row">
                   <td>
                     <div className="employee-info">
-                      <div className="employee-avatar">
-                        {emp.name.charAt(0)}
+                      {emp.imageUrl ? (
+                        <img src={emp.imageUrl} alt={emp.name} className="table-avatar" />
+                      ) : (
+                        <div className="table-avatar-placeholder">
+                          {emp.name.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <div className="emp-name">{emp.name}</div>
+                        <div className="emp-id">{emp.employeeId}</div>
                       </div>
-                      <span className="name-bold">{emp.name}</span>
                     </div>
                   </td>
                   <td>{emp.email}</td>
@@ -161,24 +168,14 @@ export default function EmployeeTable({ employees, onDelete }) {
           background: rgba(255, 255, 255, 0.02);
         }
 
-        .employee-info {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
+        .employee-info { display: flex; align-items: center; gap: 1rem; }
+        .table-avatar, .table-avatar-placeholder {
+          width: 40px; height: 40px; border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 700; font-size: 1rem; object-fit: cover;
         }
-
-        .employee-avatar {
-          width: 36px;
-          height: 36px;
-          background: var(--primary);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #000;
-          font-weight: 800;
-          font-size: 0.9rem;
-        }
+        .table-avatar-placeholder { background: var(--secondary); color: var(--primary); }
+        .emp-name { font-weight: 600; color: var(--foreground); }
 
         .name-bold {
           font-weight: 700;

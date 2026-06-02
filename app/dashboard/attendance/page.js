@@ -3,19 +3,25 @@ import { useAttendance } from "@/hooks/useAttendance";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import { deleteAttendance } from "@/lib/attendanceService";
 import Link from "next/link";
-import { FiPlus, FiClock } from "react-icons/fi";
+import { FiPlus, FiClock, FiTrash2 } from "react-icons/fi";
+import { useToast } from "@/components/ui/Toast";
+import Modal from "@/components/ui/Modal";
+import { useState } from "react";
 
 export default function AttendancePage() {
     const { records, loading, error, refetch } = useAttendance();
+    const { addToast } = useToast();
+    const [deleteId, setDeleteId] = useState(null);
 
-    const handleDelete = async (id) => {
-        if (window.confirm("Delete this attendance record?")) {
-            try {
-                await deleteAttendance(id);
-                refetch();
-            } catch (err) {
-                alert("Delete failed: " + err.message);
-            }
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await deleteAttendance(deleteId);
+            addToast("Record deleted successfully", "success");
+            setDeleteId(null);
+            refetch();
+        } catch (err) {
+            addToast(err.message || "Delete failed", "error");
         }
     };
 
@@ -41,8 +47,24 @@ export default function AttendancePage() {
             ) : error ? (
                 <div className="error-state">Sync Error: {error}</div>
             ) : (
-                <AttendanceTable records={records} onDelete={handleDelete} />
+                <AttendanceTable records={records} onDelete={(id) => setDeleteId(id)} />
             )}
+
+            <Modal
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                title="Confirm Deletion"
+                footer={
+                    <>
+                        <button className="secondary-btn" onClick={() => setDeleteId(null)}>Cancel</button>
+                        <button className="delete-btn" onClick={handleDelete}>
+                            <FiTrash2 /> Delete Record
+                        </button>
+                    </>
+                }
+            >
+                <p>Are you sure you want to remove this attendance record? This action is permanent and cannot be undone.</p>
+            </Modal>
 
             <style jsx>{`
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -63,6 +85,32 @@ export default function AttendancePage() {
         }
         .add-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .loader { text-align: center; padding: 4rem; color: var(--text-muted); }
+
+        .error-state {
+          padding: 2rem;
+          background: rgba(239, 68, 68, 0.1);
+          color: var(--error);
+          border-radius: 12px;
+        }
+
+        .secondary-btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 10px;
+          background: var(--secondary);
+          color: var(--foreground);
+          font-weight: 600;
+        }
+
+        .delete-btn {
+          padding: 0.75rem 1.5rem;
+          border-radius: 10px;
+          background: var(--error);
+          color: white;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 600;
+        }
       `}</style>
         </div>
     );
