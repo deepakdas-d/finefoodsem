@@ -149,7 +149,6 @@ export default function EmployeeForm({ initialData = null, onSubmit, onCancel })
             value={formData.email}
             onChange={handleChange}
             placeholder="e.g. rahul@test.com"
-            required
           />
         </div>
 

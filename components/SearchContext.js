@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import { getEmployees } from "@/lib/employeeService";
 
 const SearchContext = createContext();
@@ -15,12 +16,18 @@ const navigationItems = [
 ];
 
 export function SearchProvider({ children }) {
+    const { user, loading } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [employees, setEmployees] = useState([]);
     const router = useRouter();
 
     useEffect(() => {
         const fetchEmployees = async () => {
+            if (!user) {
+                setEmployees([]);
+                return;
+            }
+
             try {
                 const data = await getEmployees();
                 setEmployees(data);
@@ -28,8 +35,11 @@ export function SearchProvider({ children }) {
                 console.error("Error fetching employees for search:", error);
             }
         };
-        fetchEmployees();
-    }, []);
+
+        if (!loading) {
+            fetchEmployees();
+        }
+    }, [user, loading]);
 
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
