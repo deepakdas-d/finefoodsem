@@ -3,7 +3,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendance } from "@/hooks/useAttendance";
 import { FiUsers, FiClock, FiActivity, FiUserPlus } from "react-icons/fi";
 import Link from "next/link";
-import { getTodayStr, formatDate } from "@/utils/formatDate";
+import { getTodayStr, formatDate, formatHoursMinutes } from "@/utils/formatDate";
 
 export default function DashboardPage() {
     const { employees, loading: empLoading } = useEmployees();
@@ -34,7 +34,7 @@ export default function DashboardPage() {
         },
         {
             label: "Total Hours Today",
-            value: attLoading ? "..." : `${totalHoursToday.toFixed(1)}h`,
+            value: attLoading ? "..." : formatHoursMinutes(totalHoursToday),
             icon: <FiClock />,
             color: "purple",
             link: "/dashboard/reports"
@@ -82,7 +82,7 @@ export default function DashboardPage() {
                                         <p className="activity-time">{formatDate(rec.date)} • {rec.checkIn} - {rec.checkOut}</p>
                                     </div>
                                     <div className="activity-meta">
-                                        <span className="activity-hours">{rec.totalHours}h</span>
+                                        <span className="activity-hours">{formatHoursMinutes(rec.totalHours)}</span>
                                     </div>
                                 </div>
                             ))

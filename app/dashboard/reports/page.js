@@ -4,7 +4,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useAttendance } from "@/hooks/useAttendance";
 import ReportFilters from "@/components/reports/ReportFilters";
 import { exportToPDF, exportToExcel } from "@/utils/exportReport";
-import { formatDate, formatTime, getMonthRange } from "@/utils/formatDate";
+import { formatDate, formatTime, getMonthRange, formatHoursMinutes } from "@/utils/formatDate";
 import { FiFileText, FiDownload, FiTable } from "react-icons/fi";
 
 export default function ReportsPage() {
@@ -28,7 +28,8 @@ export default function ReportsPage() {
     }, [records, filters]);
 
     const totalHours = useMemo(() => {
-        return filteredRecords.reduce((sum, rec) => sum + (rec.totalHours || 0), 0).toFixed(1);
+        const total = filteredRecords.reduce((sum, rec) => sum + (rec.totalHours || 0), 0);
+        return formatHoursMinutes(total);
     }, [filteredRecords]);
 
     const columns = [
@@ -88,7 +89,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="summary-item">
                     <span className="label">Total Hours:</span>
-                    <span className="value">{totalHours}h</span>
+                    <span className="value">{totalHours}</span>
                 </div>
             </div>
 
@@ -110,7 +111,7 @@ export default function ReportsPage() {
                                         <td>{formatDate(rec.date)}</td>
                                         <td>{formatTime(rec.checkIn)}</td>
                                         <td>{formatTime(rec.checkOut)}</td>
-                                        <td className="font-bold text-primary">{rec.totalHours}h</td>
+                                        <td className="font-bold text-primary">{formatHoursMinutes(rec.totalHours)}</td>
                                         <td><span className={`status-small ${rec.status.toLowerCase().replace(" ", "-")}`}>{rec.status}</span></td>
                                     </tr>
                                 ))

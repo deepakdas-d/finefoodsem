@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { FiSave, FiX, FiUser, FiCalendar, FiClock, FiActivity } from "react-icons/fi";
 import { calculateHours } from "@/lib/calculateHours";
-import { getTodayStr } from "@/utils/formatDate";
+import { getTodayStr, formatHoursMinutes } from "@/utils/formatDate";
+import TimeDial from "./TimeDial";
 
 export default function AttendanceForm({ employees, initialData = null, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
@@ -120,22 +121,19 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
 
         <div className="input-group">
           <label><FiClock /> Check-In Time</label>
-          <input
-            type="time"
-            name="checkIn"
+          <TimeDial
             value={formData.checkIn}
-            onChange={handleChange}
-            required
+            onChange={(val) => setFormData(prev => ({ ...prev, checkIn: val }))}
+            placeholder="Select check-in..."
           />
         </div>
 
         <div className="input-group">
           <label><FiClock /> Check-Out Time</label>
-          <input
-            type="time"
-            name="checkOut"
+          <TimeDial
             value={formData.checkOut}
-            onChange={handleChange}
+            onChange={(val) => setFormData(prev => ({ ...prev, checkOut: val }))}
+            placeholder="Not checked out"
           />
         </div>
 
@@ -143,7 +141,7 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
           <span className="label">
             {!formData.checkOut ? "Checkout Pending..." : "Total Calculated Hours:"}
           </span>
-          <span className="value">{formData.totalHours} hrs</span>
+          <span className="value">{formatHoursMinutes(formData.totalHours)}</span>
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiSearch } from "react-icons/fi";
 import Link from "next/link";
 import { useState } from "react";
-import { formatDate, formatTime } from "@/utils/formatDate";
+import { formatDate, formatTime, formatHoursMinutes } from "@/utils/formatDate";
 
 export default function AttendanceTable({ records, onDelete }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +63,7 @@ export default function AttendanceTable({ records, onDelete }) {
                   <td>
                     <div className="hours-badge">
                       <FiClock className="icon-xs" />
-                      {rec.totalHours} hrs
+                      {formatHoursMinutes(rec.totalHours)}
                     </div>
                   </td>
                   <td>
