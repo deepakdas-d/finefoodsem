@@ -1,20 +1,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
-  --secondary: #1e293b;
-  --accent: #f43f5e;
+  /* Light Mode (Clean White & Bold Gold) */
+  --background: #fafafa;
+  --foreground: #000000;
+  --primary: #eab308;
+  /* Gold-Yellow */
+  --primary-hover: #ca8a04;
+  --secondary: #f4f4f5;
+  --accent: #111827;
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
-  --text-muted: #94a3b8;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --sidebar-width: 260px;
-  --navbar-height: 70px;
+  --text-muted: #71717a;
+  --card-bg: #ffffff;
+  --card-border: #e4e4e7;
+  --sidebar-width: 280px;
+  --navbar-height: 80px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Mode (True Black & Neon Yellow) */
+    --background: #000000;
+    --foreground: #f8fafc;
+    --primary: #facc15;
+    /* Bright Yellow */
+    --primary-hover: #eab308;
+    --secondary: #18181b;
+    --accent: #facc15;
+    --success: #22c55e;
+    --warning: #eab308;
+    --error: #f43f5e;
+    --text-muted: #a1a1aa;
+    --card-bg: #09090b;
+    --card-border: #27272a;
+  }
 }
 
 * {
@@ -48,7 +69,9 @@ button {
   font-family: inherit;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: inherit;
   outline: none;
 }
@@ -89,8 +112,15 @@ input, select, textarea {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {

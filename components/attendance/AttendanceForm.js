@@ -5,124 +5,131 @@ import { calculateHours } from "@/lib/calculateHours";
 import { getTodayStr } from "@/utils/formatDate";
 
 export default function AttendanceForm({ employees, initialData = null, onSubmit, onCancel }) {
-    const [formData, setFormData] = useState({
-        employeeId: "",
-        date: getTodayStr(),
-        checkIn: "09:00",
-        checkOut: "18:00",
-        totalHours: 9,
-        status: "Present",
+  const [formData, setFormData] = useState({
+    employeeId: "",
+    date: getTodayStr(),
+    checkIn: "09:00",
+    checkOut: "",
+    totalHours: 0,
+    status: "Present",
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else if (employees.length > 0 && !formData.employeeId) {
+      setFormData(prev => ({ ...prev, employeeId: employees[0].id }));
+    }
+  }, [initialData, employees]);
+
+  // Recalculate hours when times change
+  useEffect(() => {
+    if (formData.checkIn) {
+      const hours = calculateHours(formData.checkIn, formData.checkOut);
+      setFormData(prev => ({
+        ...prev,
+        totalHours: hours,
+        // Automatically set status to "In Progress" if check-out is empty
+        status: !formData.checkOut && prev.status !== "Late" ? "In Progress" : prev.status === "In Progress" && formData.checkOut ? "Present" : prev.status
+      }));
+    }
+  }, [formData.checkIn, formData.checkOut]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const employee = employees.find(emp => emp.id === formData.employeeId);
+    onSubmit({
+      ...formData,
+      employeeName: employee?.name || "Unknown",
     });
+  };
 
-    useEffect(() => {
-        if (initialData) {
-            setFormData(initialData);
-        } else if (employees.length > 0 && !formData.employeeId) {
-            setFormData(prev => ({ ...prev, employeeId: employees[0].id }));
-        }
-    }, [initialData, employees]);
+  return (
+    <form onSubmit={handleSubmit} className="form-container glass animate-fade-in">
+      <div className="form-grid">
+        <div className="input-group full-width">
+          <label><FiUser /> Select Employee</label>
+          <select
+            name="employeeId"
+            value={formData.employeeId}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>Choose an employee...</option>
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.name} ({emp.department})
+              </option>
+            ))}
+          </select>
+        </div>
 
-    // Recalculate hours when times change
-    useEffect(() => {
-        if (formData.checkIn && formData.checkOut) {
-            const hours = calculateHours(formData.checkIn, formData.checkOut);
-            setFormData(prev => ({ ...prev, totalHours: hours }));
-        }
-    }, [formData.checkIn, formData.checkOut]);
+        <div className="input-group">
+          <label><FiCalendar /> Date</label>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-    };
+        <div className="input-group">
+          <label><FiActivity /> Status</label>
+          <select name="status" value={formData.status} onChange={handleChange}>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Half Day">Half Day</option>
+            <option value="Overtime">Overtime</option>
+            <option value="In Progress">In Progress</option>
+          </select>
+        </div>
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const employee = employees.find(emp => emp.id === formData.employeeId);
-        onSubmit({
-            ...formData,
-            employeeName: employee?.name || "Unknown",
-        });
-    };
+        <div className="input-group">
+          <label><FiClock /> Check-In Time</label>
+          <input
+            type="time"
+            name="checkIn"
+            value={formData.checkIn}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-    return (
-        <form onSubmit={handleSubmit} className="form-container glass animate-fade-in">
-            <div className="form-grid">
-                <div className="input-group full-width">
-                    <label><FiUser /> Select Employee</label>
-                    <select
-                        name="employeeId"
-                        value={formData.employeeId}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="" disabled>Choose an employee...</option>
-                        {employees.map((emp) => (
-                            <option key={emp.id} value={emp.id}>
-                                {emp.name} ({emp.department})
-                            </option>
-                        ))}
-                    </select>
-                </div>
+        <div className="input-group">
+          <label><FiClock /> Check-Out Time</label>
+          <input
+            type="time"
+            name="checkOut"
+            value={formData.checkOut}
+            onChange={handleChange}
+          />
+        </div>
 
-                <div className="input-group">
-                    <label><FiCalendar /> Date</label>
-                    <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
+        <div className={`hours-display full-width ${!formData.checkOut ? "pending" : ""}`}>
+          <span className="label">
+            {!formData.checkOut ? "Checkout Pending..." : "Total Calculated Hours:"}
+          </span>
+          <span className="value">{formData.totalHours} hrs</span>
+        </div>
+      </div>
 
-                <div className="input-group">
-                    <label><FiActivity /> Status</label>
-                    <select name="status" value={formData.status} onChange={handleChange}>
-                        <option value="Present">Present</option>
-                        <option value="Late">Late</option>
-                        <option value="Half Day">Half Day</option>
-                        <option value="Overtime">Overtime</option>
-                    </select>
-                </div>
+      <div className="form-actions">
+        <button type="button" onClick={onCancel} className="cancel-button">
+          <FiX /> Cancel
+        </button>
+        <button type="submit" className="save-button">
+          <FiSave /> {initialData ? "Update Attendance" : "Save Attendance"}
+        </button>
+      </div>
 
-                <div className="input-group">
-                    <label><FiClock /> Check-In Time</label>
-                    <input
-                        type="time"
-                        name="checkIn"
-                        value={formData.checkIn}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="input-group">
-                    <label><FiClock /> Check-Out Time</label>
-                    <input
-                        type="time"
-                        name="checkOut"
-                        value={formData.checkOut}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="hours-display full-width">
-                    <span className="label">Total Calculated Hours:</span>
-                    <span className="value">{formData.totalHours} hrs</span>
-                </div>
-            </div>
-
-            <div className="form-actions">
-                <button type="button" onClick={onCancel} className="cancel-button">
-                    <FiX /> Cancel
-                </button>
-                <button type="submit" className="save-button">
-                    <FiSave /> {initialData ? "Update Attendance" : "Save Attendance"}
-                </button>
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .form-container {
           padding: 2rem;
           max-width: 700px;
@@ -168,7 +175,7 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
         }
 
         .hours-display {
-          background: rgba(99, 102, 241, 0.05);
+          background: rgba(234, 179, 8, 0.05);
           padding: 1rem;
           border-radius: 10px;
           border: 1px dashed var(--primary);
@@ -176,6 +183,12 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
           justify-content: space-between;
           align-items: center;
           margin-top: 0.5rem;
+          transition: all 0.3s ease;
+        }
+
+        .hours-display.pending {
+          background: rgba(244, 63, 94, 0.05);
+          border-color: var(--error);
         }
 
         .hours-display .label {
@@ -219,6 +232,6 @@ export default function AttendanceForm({ employees, initialData = null, onSubmit
           box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
       `}</style>
-        </form>
-    );
+    </form>
+  );
 }

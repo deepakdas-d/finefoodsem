@@ -4,85 +4,94 @@ import Link from "next/link";
 import { useState } from "react";
 
 export default function EmployeeTable({ employees, onDelete }) {
-    const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-    const filteredEmployees = employees.filter((emp) =>
-        Object.values(emp).some((val) =>
-            String(val).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    );
+  const filteredEmployees = employees.filter((emp) => {
+    const query = searchTerm.toLowerCase().trim();
+    if (!query) return true;
 
     return (
-        <div className="table-container glass animate-fade-in">
-            <div className="table-header">
-                <h3>Employee Directory</h3>
-                <div className="search-box">
-                    <FiSearch />
-                    <input
-                        type="text"
-                        placeholder="Search employees..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </div>
+      (emp.name?.toLowerCase() || "").includes(query) ||
+      (emp.email?.toLowerCase() || "").includes(query) ||
+      (emp.department?.toLowerCase() || "").includes(query) ||
+      (emp.position?.toLowerCase() || "").includes(query)
+    );
+  });
 
-            <div className="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>Position</th>
-                            <th>Phone</th>
-                            <th className="actions-cell">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredEmployees.length > 0 ? (
-                            filteredEmployees.map((emp) => (
-                                <tr key={emp.id} className="table-row">
-                                    <td>
-                                        <div className="employee-info">
-                                            <div className="employee-avatar">
-                                                {emp.name.charAt(0)}
-                                            </div>
-                                            <span className="name-bold">{emp.name}</span>
-                                        </div>
-                                    </td>
-                                    <td>{emp.email}</td>
-                                    <td>
-                                        <span className="badge-dept">{emp.department}</span>
-                                    </td>
-                                    <td>{emp.position}</td>
-                                    <td>{emp.phone || "N/A"}</td>
-                                    <td className="actions-cell">
-                                        <div className="action-btns">
-                                            <Link href={`/dashboard/employees/${emp.id}`} className="edit-btn">
-                                                <FiEdit2 />
-                                            </Link>
-                                            <button
-                                                onClick={() => onDelete(emp.id)}
-                                                className="delete-btn"
-                                                title="Delete Employee"
-                                            >
-                                                <FiTrash2 />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="empty-state">No employees found.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+  return (
+    <div className="table-container glass animate-fade-in">
+      <div className="table-header">
+        <div>
+          <h3>Employee Directory</h3>
+          <p className="subtitle">Total: {filteredEmployees.length} employees</p>
+        </div>
+        <div className="search-box">
+          <FiSearch />
+          <input
+            type="text"
+            placeholder="Search by name, email, department..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
 
-            <style jsx>{`
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Department</th>
+              <th>Position</th>
+              <th>Phone</th>
+              <th className="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredEmployees.length > 0 ? (
+              filteredEmployees.map((emp) => (
+                <tr key={emp.id} className="table-row">
+                  <td>
+                    <div className="employee-info">
+                      <div className="employee-avatar">
+                        {emp.name.charAt(0)}
+                      </div>
+                      <span className="name-bold">{emp.name}</span>
+                    </div>
+                  </td>
+                  <td>{emp.email}</td>
+                  <td>
+                    <span className="badge-dept">{emp.department}</span>
+                  </td>
+                  <td>{emp.position}</td>
+                  <td>{emp.phone || "N/A"}</td>
+                  <td className="actions-cell">
+                    <div className="action-btns">
+                      <Link href={`/dashboard/employees/${emp.id}`} className="edit-btn">
+                        <FiEdit2 />
+                      </Link>
+                      <button
+                        onClick={() => onDelete(emp.id)}
+                        className="delete-btn"
+                        title="Delete Employee"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="empty-state">No matching employees found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <style jsx>{`
         .table-container {
           padding: 1.5rem;
           margin-top: 1.5rem;
@@ -92,25 +101,34 @@ export default function EmployeeTable({ employees, onDelete }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 1.5rem;
+          margin-bottom: 2rem;
         }
+
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
 
         .search-box {
           display: flex;
           align-items: center;
-          background: rgba(255, 255, 255, 0.05);
-          padding: 0.5rem 1rem;
-          border-radius: 10px;
+          background: var(--secondary);
+          padding: 0.75rem 1rem;
+          border-radius: 12px;
           border: 1px solid var(--card-border);
-          width: 300px;
+          width: 350px;
+          transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
         }
 
         .search-box input {
           background: none;
           border: none;
           color: var(--foreground);
-          margin-left: 0.5rem;
+          margin-left: 0.75rem;
           width: 100%;
+          font-size: 0.9rem;
         }
 
         .table-wrapper {
@@ -124,16 +142,17 @@ export default function EmployeeTable({ employees, onDelete }) {
         }
 
         th {
-          padding: 1rem;
+          padding: 1.25rem 1rem;
           color: var(--text-muted);
-          font-weight: 500;
-          font-size: 0.85rem;
+          font-weight: 600;
+          font-size: 0.8rem;
           text-transform: uppercase;
+          letter-spacing: 0.5px;
           border-bottom: 1px solid var(--card-border);
         }
 
         td {
-          padding: 1rem;
+          padding: 1.25rem 1rem;
           border-bottom: 1px solid var(--card-border);
           font-size: 0.95rem;
         }
@@ -145,33 +164,35 @@ export default function EmployeeTable({ employees, onDelete }) {
         .employee-info {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 1rem;
         }
 
         .employee-avatar {
-          width: 32px;
-          height: 32px;
+          width: 36px;
+          height: 36px;
           background: var(--primary);
-          border-radius: 8px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
-          font-weight: bold;
-          font-size: 0.8rem;
+          color: #000;
+          font-weight: 800;
+          font-size: 0.9rem;
         }
 
         .name-bold {
-          font-weight: 600;
+          font-weight: 700;
+          color: var(--foreground);
         }
 
         .badge-dept {
-          background: rgba(99, 102, 241, 0.1);
+          background: var(--secondary);
           color: var(--primary);
-          padding: 0.25rem 0.75rem;
-          border-radius: 6px;
+          padding: 0.4rem 0.8rem;
+          border-radius: 8px;
           font-size: 0.8rem;
-          font-weight: 500;
+          font-weight: 700;
+          border: 1px solid rgba(251, 191, 36, 0.1);
         }
 
         .actions-cell {
@@ -220,6 +241,6 @@ export default function EmployeeTable({ employees, onDelete }) {
           color: var(--text-muted);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

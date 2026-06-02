@@ -2,69 +2,81 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FiMail, FiLock, FiArrowRight, FiShield } from "react-icons/fi";
+import { auth } from "@/lib/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function LoginPage() {
-    const router = useRouter();
-    const [email, setEmail] = useState("admin@finefoods.com");
-    const [password, setPassword] = useState("password123");
-    const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        setLoading(true);
-        // Simulating login delay
-        setTimeout(() => {
-            router.push("/dashboard");
-        }, 1500);
-    };
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-    return (
-        <div className="login-wrapper">
-            <div className="login-card glass-dark animate-fade-in">
-                <div className="login-header">
-                    <div className="login-logo">FF</div>
-                    <h1>FineFoods <span className="text-primary">EM</span></h1>
-                    <p className="subtitle">Employee Hours Management System</p>
-                </div>
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <form onSubmit={handleLogin} className="login-form">
-                    <div className="input-group">
-                        <label><FiMail /> Email Address</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@example.com"
-                            required
-                        />
-                    </div>
+  return (
+    <div className="login-wrapper">
+      <div className="login-card glass-dark animate-fade-in">
+        <div className="login-header">
+          <div className="login-logo">FF</div>
+          <h1>FineFoods <span className="text-primary">EM</span></h1>
+          <p className="subtitle">Employee Hours Management System</p>
+        </div>
 
-                    <div className="input-group">
-                        <label><FiLock /> Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="input-group">
+            <label><FiMail /> Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@example.com"
+              required
+            />
+          </div>
 
-                    <button type="submit" className="login-btn" disabled={loading}>
-                        {loading ? "Authenticating..." : (
-                            <>
-                                Continue to Dashboard <FiArrowRight />
-                            </>
-                        )}
-                    </button>
-                </form>
+          <div className="input-group">
+            <label><FiLock /> Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-                <div className="login-footer">
-                    <p><FiShield /> Secure Administrator Access Only</p>
-                </div>
-            </div>
+          {error && <p className="login-error-msg">{error}</p>}
 
-            <style jsx global>{`
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Authenticating..." : (
+              <>
+                Continue to Dashboard <FiArrowRight />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="login-footer">
+          <p><FiShield /> Secure Administrator Access Only</p>
+        </div>
+      </div>
+
+      <style jsx global>{`
         .login-wrapper {
           min-height: 100vh;
           width: 100vw;
@@ -176,6 +188,16 @@ export default function LoginPage() {
           cursor: not-allowed;
         }
 
+        .login-error-msg {
+          color: var(--error);
+          font-size: 0.85rem;
+          text-align: center;
+          padding: 0.75rem;
+          background: rgba(239, 68, 68, 0.1);
+          border-radius: 8px;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
         .login-footer {
           margin-top: 2.5rem;
           text-align: center;
@@ -190,6 +212,6 @@ export default function LoginPage() {
           gap: 0.5rem;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

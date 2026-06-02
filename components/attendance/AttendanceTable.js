@@ -1,81 +1,135 @@
 "use client";
-import { FiEdit2, FiTrash2, FiClock, FiCalendar } from "react-icons/fi";
+import { FiEdit2, FiTrash2, FiClock, FiCalendar, FiSearch } from "react-icons/fi";
 import Link from "next/link";
+import { useState } from "react";
 import { formatDate, formatTime } from "@/utils/formatDate";
 
 export default function AttendanceTable({ records, onDelete }) {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredRecords = records.filter((rec) => {
+    const query = searchTerm.toLowerCase().trim();
+    if (!query) return true;
     return (
-        <div className="table-container glass animate-fade-in">
-            <div className="table-header">
-                <h3>Attendance Logs</h3>
-            </div>
+      (rec.employeeName?.toLowerCase() || "").includes(query) ||
+      (rec.status?.toLowerCase() || "").includes(query)
+    );
+  });
 
-            <div className="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Hours</th>
-                            <th>Status</th>
-                            <th className="actions-cell">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {records.length > 0 ? (
-                            records.map((rec) => (
-                                <tr key={rec.id} className="table-row">
-                                    <td className="name-bold">{rec.employeeName}</td>
-                                    <td>
-                                        <div className="date-flex">
-                                            <FiCalendar className="icon-muted" />
-                                            {formatDate(rec.date)}
-                                        </div>
-                                    </td>
-                                    <td>{formatTime(rec.checkIn)}</td>
-                                    <td>{formatTime(rec.checkOut)}</td>
-                                    <td>
-                                        <div className="hours-badge">
-                                            <FiClock className="icon-xs" />
-                                            {rec.totalHours} hrs
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className={`status-badge ${rec.status.toLowerCase().replace(" ", "-")}`}>
-                                            {rec.status}
-                                        </span>
-                                    </td>
-                                    <td className="actions-cell">
-                                        <div className="action-btns">
-                                            <Link href={`/dashboard/attendance/${rec.id}`} className="edit-btn">
-                                                <FiEdit2 />
-                                            </Link>
-                                            <button onClick={() => onDelete(rec.id)} className="delete-btn">
-                                                <FiTrash2 />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="7" className="empty-state">No attendance records found.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+  return (
+    <div className="table-container glass animate-fade-in">
+      <div className="table-header">
+        <div>
+          <h3>Attendance Logs</h3>
+          <p className="subtitle">Total: {filteredRecords.length} records</p>
+        </div>
+        <div className="search-box">
+          <FiSearch />
+          <input
+            type="text"
+            placeholder="Search by employee name or status..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
 
-            <style jsx>{`
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Date</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Hours</th>
+              <th>Status</th>
+              <th className="actions-cell">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRecords.length > 0 ? (
+              filteredRecords.map((rec) => (
+                <tr key={rec.id} className="table-row">
+                  <td className="name-bold">{rec.employeeName}</td>
+                  <td>
+                    <div className="date-flex">
+                      <FiCalendar className="icon-muted" />
+                      {formatDate(rec.date)}
+                    </div>
+                  </td>
+                  <td>{formatTime(rec.checkIn)}</td>
+                  <td>{formatTime(rec.checkOut)}</td>
+                  <td>
+                    <div className="hours-badge">
+                      <FiClock className="icon-xs" />
+                      {rec.totalHours} hrs
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`status-badge ${rec.status.toLowerCase().replace(" ", "-")}`}>
+                      {rec.status}
+                    </span>
+                  </td>
+                  <td className="actions-cell">
+                    <div className="action-btns">
+                      <Link href={`/dashboard/attendance/${rec.id}`} className="edit-btn">
+                        <FiEdit2 />
+                      </Link>
+                      <button onClick={() => onDelete(rec.id)} className="delete-btn">
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="empty-state">No attendance records found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <style jsx>{`
         .table-container {
           padding: 1.5rem;
           margin-top: 1.5rem;
         }
 
         .table-header {
-          margin-bottom: 1.5rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 2rem;
+        }
+
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        .search-box {
+          display: flex;
+          align-items: center;
+          background: var(--secondary);
+          padding: 0.75rem 1rem;
+          border-radius: 12px;
+          border: 1px solid var(--card-border);
+          width: 350px;
+          transition: all 0.3s ease;
+        }
+
+        .search-box:focus-within {
+          border-color: var(--primary);
+          box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.1);
+        }
+
+        .search-box input {
+          background: none;
+          border: none;
+          color: var(--foreground);
+          margin-left: 0.75rem;
+          width: 100%;
+          font-size: 0.9rem;
         }
 
         .table-wrapper {
@@ -146,6 +200,7 @@ export default function AttendanceTable({ records, onDelete }) {
         .status-badge.late { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
         .status-badge.overtime { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
         .status-badge.half-day { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+        .status-badge.in-progress { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
 
         .actions-cell { text-align: right; }
         .action-btns { display: flex; justify-content: flex-end; gap: 0.5rem; }
@@ -162,6 +217,6 @@ export default function AttendanceTable({ records, onDelete }) {
 
         .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
