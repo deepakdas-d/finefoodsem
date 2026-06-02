@@ -1,13 +1,16 @@
 "use client";
 import { useNotificationChecker } from "@/hooks/useNotificationChecker";
-import { ToastProvider } from "@/components/ui/Toast";
+import { useFcm } from "@/hooks/useFcm";
 
 export default function ClientWrapper({ children }) {
     useNotificationChecker();
+    useFcm();
 
     return (
-        <ToastProvider>
+        <>
             {children}
-        </ToastProvider>
+        </>
     );
 }
+
+

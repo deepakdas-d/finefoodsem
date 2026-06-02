@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeContext";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ToastProvider } from "@/components/ui/Toast";
 import ClientWrapper from "@/components/ui/ClientWrapper";
 
 export const metadata = {
@@ -14,9 +15,11 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <ThemeProvider>
-            <ClientWrapper>
-              {children}
-            </ClientWrapper>
+            <ToastProvider>
+              <ClientWrapper>
+                {children}
+              </ClientWrapper>
+            </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

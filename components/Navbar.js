@@ -3,13 +3,27 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiBell, FiSettings, FiX, FiCheckCircle, FiInfo, FiAlertCircle, FiSun, FiMoon, FiMenu } from "react-icons/fi";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeContext";
+import { useFcm } from "@/hooks/useFcm";
 
 export default function Navbar({ onMenuClick }) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { requestPermission } = useFcm();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [permissionStatus, setPermissionStatus] = useState("default");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPermissionStatus(Notification.permission);
+    }
+  }, []);
+
+  const handleEnableNotifications = async () => {
+    await requestPermission();
+    setPermissionStatus(Notification.permission);
+  };
 
   const loadNotifications = () => {
     const history = JSON.parse(localStorage.getItem("notification_history") || "[]");
@@ -79,6 +93,16 @@ export default function Navbar({ onMenuClick }) {
                   <button className="clear-btn" onClick={clearNotifications}>Clear All</button>
                 )}
               </div>
+
+              {permissionStatus !== "granted" && (
+                <div className="permission-prompt">
+                  <p>Enable real-time notifications</p>
+                  <button className="enable-btn" onClick={handleEnableNotifications}>
+                    Enable
+                  </button>
+                </div>
+              )}
+
               <div className="notifications-list">
                 {notifications.length === 0 ? (
                   <div className="empty-notifications">
@@ -326,6 +350,38 @@ export default function Navbar({ onMenuClick }) {
           font-size: 0.8rem;
           color: var(--primary);
           font-weight: 600;
+        }
+
+        .permission-prompt {
+          padding: 12px 16px;
+          background: rgba(234, 179, 8, 0.1);
+          border-bottom: 1px solid var(--card-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .permission-prompt p {
+          font-size: 0.8rem;
+          margin: 0;
+          color: var(--foreground);
+          font-weight: 500;
+        }
+
+        .enable-btn {
+          background: var(--primary);
+          color: #000;
+          padding: 4px 12px;
+          border-radius: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          transition: all 0.2s;
+        }
+
+        .enable-btn:hover {
+          filter: brightness(1.1);
+          transform: translateY(-1px);
         }
 
         .notifications-list {
